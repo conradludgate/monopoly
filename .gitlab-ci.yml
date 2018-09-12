@@ -1,7 +1,7 @@
 test:server:
     image: golang:latest
     before_script:
-        - mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/server
+        - mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/
         - ln -svf $CI_PROJECT_DIR/server $GOPATH/src/lab.fork.sh/oon/monopoly
         - cd $GOPATH/src/lab.fork.sh/oon/monopoly/server
     script:
@@ -13,7 +13,6 @@ test:server:
 test:client:
     image: node:latest
     before_script:
-        - mkdir -p /home/monopoly
         - ln -svf $CI_PROJECT_DIR /home
         - cd /home/monopoly
         - npm i
