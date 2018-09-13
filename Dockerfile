@@ -14,14 +14,23 @@ ADD . .
 
 RUN npm run-script build
 
-# build and run go server
-FROM golang:latest
+# build server
+FROM golang:latest AS go
 
 COPY server src/github.com/conradludgate/monopoly/server/
 
 WORKDIR src/github.com/conradludgate/monopoly/server/
-RUN go get && go build .
 
-COPY --from=react /home/monopoly/build src/
+COPY --from=react /home/monopoly/build src
+
+RUN go get -u github.com/go-bindata/go-bindata/... && \
+	go-bindata -prefix src/ src/ && \
+	go get && \
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -v -o /bin/server . 
+
+# run the server
+FROM scratch
+
+COPY --from=go /bin/server .
 
 ENTRYPOINT server
