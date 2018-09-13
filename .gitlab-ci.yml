@@ -1,0 +1,20 @@
+test:server:
+    image: golang:latest
+    before_script:
+        - mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/
+        - ln -svf $CI_PROJECT_DIR/server $GOPATH/src/lab.fork.sh/oon/monopoly
+        - cd $GOPATH/src/lab.fork.sh/oon/monopoly/server
+    script:
+        - go get
+        - go fmt $(go list ./...)
+        - go vet $(go list ./...)
+        - go test -race $(go list ./...)
+        
+test:client:
+    image: node:latest
+    before_script:
+        - ln -svf $CI_PROJECT_DIR /home
+        - cd /home/monopoly
+        - npm i
+    script:
+        - npm run-script test
