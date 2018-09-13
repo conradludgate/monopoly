@@ -23,7 +23,7 @@ test:client:
     - cd /home/monopoly
     - npm i
   script:
-  	- echo $CI
+    - echo $CI
     - npm run-script test
 
 build:image:
