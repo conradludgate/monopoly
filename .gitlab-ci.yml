@@ -1,39 +1,39 @@
 stages:
-	- test
-	- build
+  - test
+  - build
 
 test:server:
-	stage: test
-	image: golang:latest
-	before_script:
-		- mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/
-		- ln -svf $CI_PROJECT_DIR/server $GOPATH/src/lab.fork.sh/oon/monopoly
-		- cd $GOPATH/src/lab.fork.sh/oon/monopoly/server
-	script:
-		- go get
-		- go fmt $(go list ./...)
-		- go vet $(go list ./...)
-		- go test -race $(go list ./...)
-			
+  stage: test
+  image: golang:latest
+  before_script:
+    - mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/
+    - ln -svf $CI_PROJECT_DIR/server $GOPATH/src/lab.fork.sh/oon/monopoly
+    - cd $GOPATH/src/lab.fork.sh/oon/monopoly/server
+  script:
+    - go get
+    - go fmt $(go list ./...)
+    - go vet $(go list ./...)
+    - go test -race $(go list ./...)
+      
 test:client:
-	stage: test
-	image: node:latest
-	before_script:
-		- ln -svf $CI_PROJECT_DIR /home
-		- cd /home/monopoly
-		- npm i
-	script:
-		- npm run-script test
+  stage: test
+  image: node:latest
+  before_script:
+    - ln -svf $CI_PROJECT_DIR /home
+    - cd /home/monopoly
+    - npm i
+  script:
+    - npm run-script test
 
 build:image:
-	stage: build
-	image: docker:dind
-	variables:
-		DOCKER_HOST: tcp://docker:2375
-		DOCKER_DRIVER: overlay2
-		IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-	before_script:
-		- docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-	script:
-		- docker build -t $IMAGE_TAG .
-		- docker push $IMAGE_TAG
+  stage: build
+  image: docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
