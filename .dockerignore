@@ -1,4 +1,9 @@
-build/*
-node_modules/*
+react/build/*
+react/node_modules/*
 README.md
 Dockerfile
+.git/*
+.gitignore
+.gitlab-ci.yml
+docker-compose.yml
+Makefile

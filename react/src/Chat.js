@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Fetch from 'react-fetch';
-import io from 'socket.io-client';
 // import './App.css';
 
 class Chat extends Component {
@@ -10,10 +9,13 @@ class Chat extends Component {
 		this.state = {
 			chatbox: "",
 			messages: [],
-			socket: io(props.ws)
+			socket: new WebSocket(props.ws)
 		};
 
-		this.state.socket.on("message", this.handleData.bind())
+		this.handleChange = this.handleChange.bind(this);
+    	this.handleSubmit = this.handleSubmit.bind(this);
+    	this.handleData   = this.handleData.bind(this);
+    	this.state.socket.onmessage = this.handleData;
 	}
 
 	handleData(data) {
@@ -23,15 +25,15 @@ class Chat extends Component {
 		});
 	}
 
-	onChange(e) {
+	handleChange(event) {
 		this.setState({
-			chat: e.target.value
+			chatbox: event.target.value
 		});
 	}
 
-	onSubmit(e) {
+	handleSubmit(event) {
 		this.state.socket.send(this.state.chat);
-		e.preventDefault();
+		event.preventDefault();
 	}
 
 	render() {
@@ -43,8 +45,8 @@ class Chat extends Component {
 					)}
 				</div>
 
-				<form onSubmit={this.onSubmit}>
-					<input type="text" value={this.state.chatbox} onChange={this.onChange} />
+				<form onSubmit={this.handleSubmit}>
+					<input type="text" value={this.state.chatbox} onChange={this.handleChange} />
 				</form>
 			</div>
 		);
