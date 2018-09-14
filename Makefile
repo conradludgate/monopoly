@@ -9,25 +9,25 @@ GOSRCS = $(wildcard $(GOSRCDIR)/*.go)
 GOSRCS += $(GOSRCDIR)/bindata.go
 EXE = monopoly
 
-DEBUG ?= false
-ifeq ($(DEBUG), false)
-	BINDEBUG = 
-else
-	BINDEBUG = -debug
-endif
+NODESCRIPT ?= build
+BINDATADBG ?= 
 
-all: $(EXE)
+.PHONY: all release clean superclean remake
+
+all: release
+
+release: $(EXE)
 
 $(EXE): $(GOSRCS)
 	cd $(GOSRCDIR) && go get
 	go build -o $(EXE) $(GOSRCDIR)/*.go
 
 $(GOSRCDIR)/bindata.go: $(REACTBUILDDIR)
-	go-bindata $(BINDEBUG) -o $(GOSRCDIR)/bindata.go -prefix $(REACTBUILDDIR)/ $(REACTBUILDDIR)/...
+	go-bindata -o $(GOSRCDIR)/bindata.go $(BINDATADBG) -prefix $(REACTBUILDDIR)/ $(REACTBUILDDIR)/...
 
 $(REACTBUILDDIR): $(REACTSRCS) $(NODEMODULES) $(wildcard $(REACTDIR)/config/*) $(wildcard $(REACTDIR)/public/*) 
 	cd $(REACTDIR) && \
-	npm run-script build
+	npm run-script $(NODESCRIPT)
 
 $(NODEMODULES): $(REACTDIR)/package.json $(REACTDIR)/package-lock.json
 	cd $(REACTDIR) && \

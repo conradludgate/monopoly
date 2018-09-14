@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import Fetch from 'react-fetch';
-// import './App.css';
 
 class Chat extends Component {
 	constructor(props) {
@@ -15,13 +13,14 @@ class Chat extends Component {
 		this.handleChange = this.handleChange.bind(this);
     	this.handleSubmit = this.handleSubmit.bind(this);
     	this.handleData   = this.handleData.bind(this);
-    	this.state.socket.onmessage = this.handleData;
+    	this.state.socket.addEventListener('message', this.handleData);
 	}
 
-	handleData(data) {
+	handleData(event) {
+		console.debug(event);
 		//let result = JSON.parse(data);
 		this.setState({
-			messages: [...this.state.messages, {msg: data, id: this.state.messages.length}]
+			messages: [...this.state.messages, {msg: event.data, id: this.state.messages.length}]
 		});
 	}
 
@@ -32,7 +31,10 @@ class Chat extends Component {
 	}
 
 	handleSubmit(event) {
-		this.state.socket.send(this.state.chat);
+		this.state.socket.send(this.state.chatbox);
+		this.setState({
+			chatbox: ""
+		})
 		event.preventDefault();
 	}
 

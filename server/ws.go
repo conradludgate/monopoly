@@ -2,8 +2,6 @@ package main
 
 import (
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -25,8 +23,6 @@ func WSHandle(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		s, _ := ioutil.ReadAll(r)
-		log.Println(string(s))
 		w, err := conn.NextWriter(messageType)
 		if err != nil {
 			return

@@ -1,8 +1,9 @@
 package main
 
 import (
-	// "github.com/gorilla/mux"
 	"bytes"
+
+	// "github.com/gorilla/mux"
 
 	"github.com/elazarl/go-bindata-assetfs"
 
@@ -10,20 +11,21 @@ import (
 	"net/http"
 )
 
-var fs = &assetfs.AssetFS{
+var fs = http.FileServer(&assetfs.AssetFS{
 	Asset:     Asset,
 	AssetDir:  AssetDir,
 	AssetInfo: AssetInfo,
-}
+})
 
 func main() {
+	http.HandleFunc("/", IndexHandle)
+	http.Handle("/static/", fs)
+	http.Handle("/static/css/", fs)
+	http.Handle("/static/js/", fs)
 
-	r := http.NewServeMux()
-	r.HandleFunc("/", IndexHandle)
-	r.Handle("/static/", http.FileServer(fs))
-	r.HandleFunc("/ws/", WSHandle)
+	http.HandleFunc("/ws/", WSHandle)
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func IndexHandle(w http.ResponseWriter, r *http.Request) {
@@ -34,5 +36,5 @@ func IndexHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.FileServer(fs).ServeHTTP(w, r)
+	fs.ServeHTTP(w, r)
 }
