@@ -1,0 +1,35 @@
+syntax = "proto3";
+package websocket;
+
+import "google/protobuf/timestamp.proto";
+
+message Websocket {
+	enum MessageType {
+		ERROR = 0;
+		CHAT = 1;
+	}
+
+	MessageType type = 1;
+
+	message ChatMessage {
+		string user = 1;
+		google.protobuf.Timestamp time = 2;
+		string message = 3;
+	}
+
+	message ErrorMessage {
+		enum ErrorType {
+			INVALID = 0;
+			UNAUTHORIZED = 1;
+			BAD = 2;
+		}
+
+		ErrorType type = 1;
+		string error = 2;
+	}
+
+	oneof message {
+		ChatMessage chat = 2;
+		ErrorMessage error = 3;
+	}
+}

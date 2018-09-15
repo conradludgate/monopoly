@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Root, { websocket } from './protobuf.pb.js'
 
 class Chat extends Component {
 	constructor(props) {
@@ -7,20 +8,28 @@ class Chat extends Component {
 		this.state = {
 			chatbox: "",
 			messages: [],
-			socket: new WebSocket(props.ws)
 		};
 
 		this.handleChange = this.handleChange.bind(this);
     	this.handleSubmit = this.handleSubmit.bind(this);
     	this.handleData   = this.handleData.bind(this);
-    	this.state.socket.addEventListener('message', this.handleData);
+    	this.handleClose  = this.handleClose.bind(this);
+    	props.ws.addEventListener('message', this.handleData);
+    	props.ws.addEventListener('close', this.handleClose);
+    	props.ws.addEventListener('error', this.handleClose);
 	}
 
 	handleData(event) {
-		console.debug(event);
-		//let result = JSON.parse(data);
+		let message = websocket.Websocket.decode(
+			Buffer.from(event.data));
+
+		if (message.type === websocket.Websocket.MessageType.ERROR) {
+			console.log(websocket.Websocket.ErrorMessage.ErrorType[message.error.type], message.error.error);
+			return
+		}
+
 		this.setState({
-			messages: [...this.state.messages, {msg: event.data, id: this.state.messages.length}]
+			messages: [...this.state.messages, {msg: message.chat.message, id: this.state.messages.length}]
 		});
 	}
 
@@ -31,11 +40,34 @@ class Chat extends Component {
 	}
 
 	handleSubmit(event) {
-		this.state.socket.send(this.state.chatbox);
+		let payload = {
+			type: websocket.Websocket.MessageType.CHAT,
+			chat: {
+				user: "Oon",
+				time: new Date(),
+				message: this.state.chatbox
+			}
+		}
+
+		let err = websocket.Websocket.verify(payload);
+		if (err) throw Error(err);
+
+		let message = websocket.Websocket.create(payload);
+		let buffer = websocket.Websocket.encode(message).finish();
+		console.debug(buffer.toString());
+		// console.debug(Buffer(buffer.toString("ascii")));
+
+		this.props.ws.send(buffer);
 		this.setState({
 			chatbox: ""
 		})
 		event.preventDefault();
+	}
+
+	handleClose(event) {
+		this.setState({
+			messages: [...this.state.messages, {msg: "Connection Error", id: this.state.messages.length}]
+		});
 	}
 
 	render() {
