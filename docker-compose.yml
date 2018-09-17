@@ -3,6 +3,5 @@ services:
   web:
     build: .
     ports:
-    - "8080:8080"
-# volumes:
-#   logvolume01: {}
+    - "8080:8080/tcp"
+    - "8080:8080/udp"

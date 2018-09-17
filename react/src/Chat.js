@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Root, { websocket } from './protobuf.pb.js'
+import { websocket } from './protobuf.pb.js'
 
 class Chat extends Component {
 	constructor(props) {
@@ -10,18 +10,27 @@ class Chat extends Component {
 			messages: [],
 		};
 
-		this.handleChange = this.handleChange.bind(this);
-    	this.handleSubmit = this.handleSubmit.bind(this);
-    	this.handleData   = this.handleData.bind(this);
-    	this.handleClose  = this.handleClose.bind(this);
-    	props.ws.addEventListener('message', this.handleData);
-    	props.ws.addEventListener('close', this.handleClose);
-    	props.ws.addEventListener('error', this.handleClose);
+		this.handleChange  = this.handleChange.bind(this);
+		this.handleSubmit  = this.handleSubmit.bind(this);
+		this.handleData    = this.handleData.bind(this);
+		this.handleMessage = this.handleMessage.bind(this);
+		this.handleClose   = this.handleClose.bind(this);
+	}
+
+	componentDidMount() {
+		this.props.ws.addEventListener('message', this.handleData);
+		this.props.ws.addEventListener('close', this.handleClose);
+		this.props.ws.addEventListener('error', this.handleClose);
 	}
 
 	handleData(event) {
-		let message = websocket.Websocket.decode(
-			Buffer.from(event.data));
+		let fileReader = new FileReader();
+		fileReader.onload = this.handleMessage;
+		fileReader.readAsArrayBuffer(event.data);
+	}
+
+	handleMessage(event) {
+		let message = websocket.Websocket.decode(Buffer.from(event.target.result));
 
 		if (message.type === websocket.Websocket.MessageType.ERROR) {
 			console.log(websocket.Websocket.ErrorMessage.ErrorType[message.error.type], message.error.error);
@@ -29,7 +38,9 @@ class Chat extends Component {
 		}
 
 		this.setState({
-			messages: [...this.state.messages, {msg: message.chat.message, id: this.state.messages.length}]
+			messages: [...this.state.messages, 
+				{msg: message.chat, id: this.state.messages.length}
+			]
 		});
 	}
 
@@ -40,11 +51,15 @@ class Chat extends Component {
 	}
 
 	handleSubmit(event) {
+		let now = Date.now();
 		let payload = {
 			type: websocket.Websocket.MessageType.CHAT,
 			chat: {
 				user: "Oon",
-				time: new Date(),
+				// time: {
+				// 	seconds: Math.floor(now/1000),
+				// 	nanos: 1000000 * now%1000
+				// },
 				message: this.state.chatbox
 			}
 		}
@@ -54,8 +69,6 @@ class Chat extends Component {
 
 		let message = websocket.Websocket.create(payload);
 		let buffer = websocket.Websocket.encode(message).finish();
-		console.debug(buffer.toString());
-		// console.debug(Buffer(buffer.toString("ascii")));
 
 		this.props.ws.send(buffer);
 		this.setState({
@@ -90,7 +103,10 @@ class Chat extends Component {
 class Message extends Component {
 	render() {
 		return (
-			<p>{this.props.msg}</p>
+			<div>
+				<span class="user">{this.props.msg.user}</span>
+				<span class="message">{this.props.msg.message}</span>
+			</div>
 		);
 	}
 }

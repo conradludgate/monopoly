@@ -1,12 +1,11 @@
 package main
 
 import (
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/gogo/protobuf/types"
 	"github.com/gorilla/websocket"
 
 	pb "github.com/conradludgate/monopoly/proto"
@@ -28,25 +27,34 @@ var upgrader = websocket.Upgrader{
 // 	BAD          = 2
 // )
 
-func WriteError(w io.WriteCloser, typ pb.Websocket_ErrorMessage_ErrorType, msg string) error {
+func WSWriteError(conn *websocket.Conn, typ pb.Websocket_ErrorMessage_ErrorType, msg string) error {
 	_msg := &pb.Websocket{
 		Type: pb.Websocket_ERROR,
-		Message: &pb.Websocket_Error{
-			&pb.Websocket_ErrorMessage{
-				Type:  typ,
-				Error: msg,
-			},
-		},
+		Message: &pb.Websocket_Error{&pb.Websocket_ErrorMessage{
+			Type:  typ,
+			Error: msg,
+		}},
 	}
 
-	b, err := proto.Marshal(_msg)
+	return WSWrite(conn, _msg)
+}
+
+func WSWrite(conn *websocket.Conn, wsMsg *pb.Websocket) error {
+	b, err := wsMsg.Marshal()
 	if err != nil {
 		return err
 	}
-	log.Println(string(b))
+
+	w, err := conn.NextWriter(websocket.BinaryMessage)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Writing", wsMsg)
 	if _, err = w.Write(b); err != nil {
 		return err
 	}
+
 	if err = w.Close(); err != nil {
 		return err
 	}
@@ -60,17 +68,14 @@ func WSHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for {
-		messageType, r, err := conn.NextReader()
+		_, r, err := conn.NextReader()
 		if err != nil {
 			return
 		}
-		w, err := conn.NextWriter(messageType)
-		if err != nil {
-			return
-		}
+
 		b, err := ioutil.ReadAll(r)
 		if err != nil {
-			if err = WriteError(w, pb.Websocket_ErrorMessage_BAD, err.Error()); err != nil {
+			if err = WSWriteError(conn, pb.Websocket_ErrorMessage_BAD, err.Error()); err != nil {
 				log.Println(err.Error())
 				return
 			}
@@ -78,19 +83,36 @@ func WSHandle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		msg := &pb.Websocket{}
-		if err := proto.Unmarshal(b, msg); err != nil {
-			if err = WriteError(w, pb.Websocket_ErrorMessage_BAD, err.Error()); err != nil {
+		if err := msg.Unmarshal(b); err != nil {
+			if err = WSWriteError(conn, pb.Websocket_ErrorMessage_BAD, err.Error()); err != nil {
 				log.Println(err.Error())
 				return
 			}
 			continue
 		}
 
-		log.Println(msg)
+		log.Println("Received", msg)
 
-		if err := w.Close(); err != nil {
-			return
+		switch msg.GetType() {
+
+		case pb.Websocket_CHAT:
+			chat := msg.GetChat()
+			if chat != nil {
+				chat.User = "Server"
+				chat.Time = types.TimestampNow()
+
+				if err := WSWrite(conn, msg); err != nil {
+					log.Println(err.Error())
+					return
+				}
+			}
+
+		case pb.Websocket_ERROR:
+			err := msg.GetError()
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
-
 	}
 }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+
 import './App.css';
 import Chat from './Chat';
 
@@ -6,7 +7,7 @@ class App extends Component {
 	constructor(props) {
 		super(props)
 
-		let ws_url = new URL("http://localhost:8080");
+		let ws_url = new URL(window.location.href);
 		ws_url.protocol = ws_url.protocol.replace("http", "ws");
 		ws_url.pathname = "/ws/";
 		this.state = {
