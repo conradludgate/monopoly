@@ -10,6 +10,7 @@ Makefile
 .gitignore
 .gitlab-ci.yml
 
+server/bindata.go
 proto/*.pb.go
 react/src/*.pb.js
 !proto/*.proto

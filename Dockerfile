@@ -40,10 +40,10 @@ proto/*.proto
 
 WORKDIR server
 COPY --from=react /home/react/build src
-RUN go-bindata -o docker-go-bindata.go -prefix src/ src/...
+RUN go-bindata -o bindata.go -prefix src/ src/...
 
 ADD server .
-RUN rm bindata.go && go get && \
+RUN go get && \
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /go/bin/server .
 
 # run the server

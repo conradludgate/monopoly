@@ -28,12 +28,12 @@ $(GOSRCDIR)/bindata.go: $(REACTBUILDDIR)
 	go-bindata -o $(GOSRCDIR)/bindata.go $(BINDATADBG) -prefix $(REACTBUILDDIR)/ $(REACTBUILDDIR)/...
 
 $(PROTODIR)/%.pb.go: $(PROTODIR)/%.proto
-	protoc -I=proto -I=$$GOPATH/src -I=$$GOPATH/src/github.com/gogo/protobuf/protobuf --gogofaster_out=\\
-Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,\\
-Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,\\
-Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,\\
-Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\\
-Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:proto proto/*.proto
+	protoc -I=proto -I=$$GOPATH/src -I=$$GOPATH/src/github.com/gogo/protobuf/protobuf --gogofaster_out=\
+	Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,\
+	Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,\
+	Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,\
+	Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\
+	Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:proto proto/*.proto
 
 $(REACTBUILDDIR): $(REACTSRCS) $(REACTDIR)/yarn.lock $(wildcard $(REACTDIR)/config/*) $(wildcard $(REACTDIR)/public/*) $(REACTSRCDIR)/protobuf.pb.js
 	cd $(REACTDIR) && yarn $(NODESCRIPT)

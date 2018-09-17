@@ -1,6 +1,8 @@
 syntax = "proto3";
 package websocket;
 
+option go_package = "pb";
+
 import "google/protobuf/timestamp.proto";
 
 message Websocket {
