@@ -2,18 +2,19 @@ stages:
   - test
   - build
 
-test:server:
-  stage: test
-  image: golang:latest
-  before_script:
-    - mkdir -p $GOPATH/src/lab.fork.sh/oon/monopoly/
-    - ln -svf $CI_PROJECT_DIR/server $GOPATH/src/lab.fork.sh/oon/monopoly
-    - cd $GOPATH/src/lab.fork.sh/oon/monopoly/server
-  script:
-    - go get
-    - go fmt $(go list ./...)
-    - go vet $(go list ./...)
-    - go test -race $(go list ./...)
+# test:server:
+#   stage: test
+#   image: golang:latest
+#   before_script:
+#     - mkdir -p $GOPATH/src/github.com/oon/monopoly/
+#     - ln -svf $CI_PROJECT_DIR/server $GOPATH/src/github.com/oon/monopoly
+#     - ln -svf $CI_PROJECT_DIR/proto $GOPATH/src/github.com/oon/monopoly
+#     - cd $GOPATH/src/github.com/oon/monopoly/server
+#   script:
+#     - go get
+#     - go fmt $(go list ./...)
+#     - go vet $(go list ./...)
+#     - go test -race $(go list ./...)
   
 # tests don't want to work here (:
 # test:client:
@@ -35,6 +36,7 @@ build:image:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - mkdir -p react/node_modules
   script:
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
