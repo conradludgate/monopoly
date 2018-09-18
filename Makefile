@@ -21,11 +21,12 @@ all: release
 
 release: $(EXE)
 
-$(EXE): $(GOSRCS) $(GOSRCDIR)/go.mod
-	go build -o $(EXE) $(GOSRCDIR)/*.go
+$(EXE): $(GOSRCS) $(GOSRCDIR)/go.sum
+	cd $(GOSRCDIR) && go build -o $(EXE)
+	mv $(GOSRCDIR)/$(EXE) .
 
-$(GOSRCDIR)/go.mod: $(GOSRCDIR)/go.sum
-	cs server && go get
+$(GOSRCDIR)/go.sum: $(GOSRCDIR)/go.mod
+	cd $(GOSRCDIR) && go get
 
 $(GOSRCDIR)/bindata.go: $(REACTBUILDDIR)
 	go-bindata -o $(GOSRCDIR)/bindata.go $(BINDATADBG) -prefix $(REACTBUILDDIR)/ $(REACTBUILDDIR)/...
