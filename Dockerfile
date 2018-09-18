@@ -4,7 +4,7 @@ FROM node:10.10.0-alpine AS react
 RUN npm i -g protobufjs yarn
 ADD proto /home/proto
 RUN mkdir -p /home/react/src && \
-	pbjs -t static-module -w es6 /home/proto/* -o /home/react/src/protobuf.pb.js
+	pbjs -t static-module -w es6 -l eslint-disable /home/proto/* -o /home/react/src/protobuf.pb.js
 
 ADD react/package.json react/yarn.lock /home/react/
 RUN cd /home/react && yarn install

@@ -46,7 +46,7 @@ $(REACTDIR)/yarn.lock: $(REACTDIR)/package.json
 	cd $(REACTDIR) && yarn install
 
 $(REACTSRCDIR)/protobuf.pb.js: $(PROTOSRC)
-	pbjs -t static-module -w es6 $(PROTOSRC) -o $@
+	pbjs -t static-module -w es6 -l eslint-disable $(PROTOSRC) -o $@
 
 clean:
 	rm -rf $(REACTBUILDDIR) $(EXE) $(GOSRCDIR)/bindata.go $(GOPROTODIR)/*.pb.go $(REACTSRCDIR)/protobuf.pb.js
