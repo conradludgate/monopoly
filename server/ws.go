@@ -9,7 +9,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/gorilla/websocket"
 
-	pb "github.com/conradludgate/monopoly/proto"
+	pb "github.com/conradludgate/monopoly/server/proto"
 )
 
 var upgrader = websocket.Upgrader{

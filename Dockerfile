@@ -5,21 +5,20 @@ RUN npm i -g protobufjs yarn
 ADD proto /home/proto
 RUN mkdir -p /home/react/src && \
 	pbjs -t static-module -w es6 /home/proto/* -o /home/react/src/protobuf.pb.js
-WORKDIR /home/react
 
-ADD react/node_modules ./node_modules/
-ADD react/package.json react/yarn.lock ./
-RUN yarn install && ls -la /home/react/src
+ADD react/package.json react/yarn.lock /home/react/
+RUN cd /home/react && yarn install
 
-ADD react .
-RUN ls -la /home/react/src && yarn build
+ADD react /home/react
+RUN cd /home/react && yarn build
 
 # build server
-FROM golang:1.11.0-alpine3.8 AS go
+FROM golang:1.11.0-stretch AS go
 
 # before-script
-RUN mkdir -p src/github.com/conradludgate/monopoly/server && \
-	apk add protobuf git && \
+RUN mkdir -p /home/monopoly/server/proto && \
+	apt-get update && \
+	apt-get install -y --no-install-recommends protobuf-compiler && \
 	go get -u github.com/golang/protobuf/protoc-gen-go && \
 	go get github.com/gogo/protobuf/proto && \
 	go get github.com/gogo/protobuf/protoc-gen-gogofaster && \
@@ -27,24 +26,24 @@ RUN mkdir -p src/github.com/conradludgate/monopoly/server && \
 	go get -u github.com/go-bindata/go-bindata/...
 
 # compile protobufs to go
-ADD proto src/github.com/conradludgate/monopoly/proto
-WORKDIR src/github.com/conradludgate/monopoly
+ADD proto /home/monopoly/proto
 
-RUN protoc -I=proto -I=$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf --gogofaster_out=\
+RUN protoc -I=/home/monopoly/proto -I=$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf --gogofaster_out=\
 Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\
-Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:proto \
-proto/*.proto
+Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:/home/monopoly/server/proto \
+/home/monopoly/proto/*.proto
 
-WORKDIR server
-COPY --from=react /home/react/build src
-RUN go-bindata -o bindata.go -prefix src/ src/...
+COPY --from=react /home/react/build /home/monopoly/src
+RUN go-bindata -o /home/monopoly/server/bindata.go -prefix /home/monopoly/src/ /home/monopoly/src/...
 
-ADD server .
-RUN go get && \
-	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /go/bin/server .
+# check and install dependencies
+ADD server /home/monopoly/server
+RUN cd /home/monopoly/server && \
+	go get && \
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /go/bin/server
 
 # run the server
 FROM scratch

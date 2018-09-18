@@ -1,4 +1,7 @@
 monopoly
+
 server/bindata.go
-react/src/protobuf.pb.js
+server/proto/*
 server/vendor/*
+
+react/src/protobuf.pb.js
